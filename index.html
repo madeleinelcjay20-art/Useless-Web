@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Invisible Ink</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #FF2264;
+      color: #FFFFFF;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-width: 280px;
+      min-height: 100vh;
+      min-height: 100svh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px 20px;
+      background: #FF2264;
+    }
+
+    main {
+      width: min(100%, 600px);
+    }
+
+    h1 {
+      min-height: 1.5em;
+      margin: 0 0 14px;
+      font-size: clamp(1.05rem, 3.5vw, 1.35rem);
+      line-height: 1.4;
+      font-weight: 600;
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    h1.changing {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+
+    .secret-box {
+      position: relative;
+      min-height: 210px;
+      overflow: hidden;
+      border-radius: 30px;
+      background: #FFFFFF;
+    }
+
+    textarea {
+      display: block;
+      width: 100%;
+      min-height: 210px;
+      padding: 24px 24px 78px;
+      border: 0;
+      outline: 0;
+      resize: none;
+      background: transparent;
+      color: #FFFFFF;
+      font: inherit;
+      font-size: 1.1rem;
+      line-height: 1.5;
+      transition: color 650ms ease;
+      caret-color: #FF2264;
+      animation: cursor-flash 1s step-end infinite;
+    }
+
+    textarea:focus-visible {
+      box-shadow: inset 0 0 0 3px #08FF5B;
+      border-radius: 30px;
+    }
+
+    .secret-box.revealed textarea {
+      color: #FF2264;
+    }
+
+    button {
+      position: absolute;
+      right: 14px;
+      bottom: 14px;
+      min-height: 46px;
+      padding: 0 19px;
+      border: 0;
+      border-radius: 999px;
+      background: #FFF200;
+      color: #171717;
+      font: inherit;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.035em;
+      cursor: pointer;
+      transition: background-color 180ms ease, transform 180ms ease;
+    }
+
+    button:hover {
+      background: #08FF5B;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    button:focus-visible {
+      outline: 3px solid #171717;
+      outline-offset: 3px;
+    }
+
+    .reaction {
+      min-height: 1.5em;
+      margin: 14px 4px 0;
+      text-align: right;
+      font-size: 0.98rem;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity 350ms ease, transform 350ms ease;
+    }
+
+    .reaction.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 420px) {
+      .secret-box,
+      textarea {
+        min-height: 230px;
+      }
+
+      textarea {
+        padding: 20px 20px 82px;
+      }
+
+      button {
+        right: 12px;
+        bottom: 12px;
+      }
+   
+    }@keyframes cursor-flash {
+      50% {
+    caret-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .error-card {
+    animation: none;
+  }
+}
+
+.error-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgb(36 59 74 / 55%);
+  backdrop-filter: blur(5px);
+}
+
+.error-modal[hidden] {
+  display: none;
+}
+
+.error-card {
+  width: min(100%, 360px);
+  padding: 32px 26px 26px;
+  border-radius: 28px;
+  background: #FFFFFF;
+  color: #243B4A;
+  text-align: center;
+  box-shadow: 0 18px 60px rgb(36 59 74 / 22%);
+  animation: error-pop 280ms cubic-bezier(.2, 1.4, .4, 1) both;
+}
+
+.error-emoji {
+  margin-bottom: 10px;
+  font-size: 2.5rem;
+}
+
+.error-card h2 {
+  margin: 0 0 10px;
+  font-size: 1.45rem;
+}
+
+.error-card p {
+  margin: 0 0 24px;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.error-modal button {
+  position: static;
+  min-height: 48px;
+  padding: 0 22px;
+  background: #FF2264;
+  color: #FFFFFF;
+  font-size: 0.85rem;
+}
+
+.error-modal button:hover {
+  background: #243B4A;
+}
+
+.error-modal button:focus-visible {
+  outline: 3px solid #08FF5B;
+  outline-offset: 4px;
+}
+
+@keyframes error-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.82) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+#revealButton.reenter-button {
+  background: #243B4A;
+  color: #FFFFFF;
+}
+
+#revealButton.reenter-button:hover {
+  background: #FF2264;
+}
+    
+</style>
+
+</head>
+
+<body>
+  
+  <main>
+    <h1 id="prompt">Type a secret about yourself in invisible ink below...</h1>
+    <div class="secret-box" id="secretBox">
+      <textarea id="secretInput" aria-label="Your secret, written in invisible ink" spellcheck="false"></textarea>
+      <button id="revealButton" type="button">CLICK TO REVEAL</button>
+    </div>
+    <p class="reaction" id="reaction" aria-live="polite">😅 I can see why you were keeping that secret!</p>
+
+<div class="error-modal" id="errorModal" role="dialog" aria-modal="true" aria-labelledby="errorTitle" aria-describedby="errorText" hidden>
+  <div class="error-card">
+    <div class="error-emoji" aria-hidden="true">🤫</div>
+    <h2 id="errorTitle">Wait a second!</h2>
+    <p id="errorText">You can't reveal your secret without writing it first.</p>
+    <button id="closeError" type="button">OK, I'll confess!</button>
+  </div>
+</div>
+  </main>
+
+  <script>
+    const secrets = [
+      "I always sprint through my house after turning off the lights.",
+      "Yesterday I ate an entire stick of butter.",
+      "When I was 12 I pooped in my friend’s swimming pool. I was never invited back.",
+      "I have a crush on Mark Carney.",
+      "I waved back at someone who wasn’t waving at me, then pretended I was fixing my hair.",
+      "I confidently told a story and realized halfway through that I was the villain.",
+      "I stalked someone’s profile so deeply that I accidentally liked a post from 2018.",
+      "I said 'you too' when the waiter told me to enjoy my meal.",
+      "I practiced an argument in the shower and still lost it.",
+      "A week ago, my mom was being annoying. I took a screenshot to send to my sister. I accidently sent the screenshot to my mom.",
+      "Yesterday I accidently said “love you” to a customer service rep before hannging up.",
+      "A week ago, I said “same” to my coworker when they said their grandma just died because I wasn’t listening.",
+      "Yesterday I was talking to a mom of twins. She said they were 3 years old. I said 'both of them?'",
+      "Last month I got locked in my bathroom at work. I had to yell for help.",
+      "Two days ago I asked someone 'What month is October in?'",
+      "I was talking to my coworker about my weekend plans to visit my cousin. She said, 'oh, I thought you were going to visit your boyfriend.' Instead of saying 'no worries', I accidently said, 'same thing.'",
+      "When I was 9, a waitress asked me if I wanted 'soup or salad'. I heard 'super salad'. I said 'yes'. She said it again. I again, said 'yes'.",
+        ];
+
+    const prompt = document.querySelector("#prompt");
+    const secretBox = document.querySelector("#secretBox");
+    const secretInput = document.querySelector("#secretInput");
+    secretInput.focus();
+    const revealButton = document.querySelector("#revealButton");
+    const reaction = document.querySelector("#reaction");
+    const errorModal = document.querySelector("#errorModal");
+const closeError = document.querySelector("#closeError");
+
+
+function playPopSound() {
+  const AudioContextClass =
+    window.AudioContext || window.webkitAudioContext;
+
+  if (!AudioContextClass) return;
+
+  try {
+    const audio = new AudioContextClass();
+
+    audio.resume().then(() => {
+      const now = audio.currentTime;
+      const master = audio.createGain();
+
+      master.gain.value = 0.5;
+      master.connect(audio.destination);
+
+      // Classic two-tone computer error: BEEP-BONG
+      const notes = [
+        { frequency: 740, start: 0, duration: 0.16 },
+        { frequency: 370, start: 0.19, duration: 0.28 }
+      ];
+
+      notes.forEach(note => {
+        const osc = audio.createOscillator();
+        const gain = audio.createGain();
+
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(
+          note.frequency, now + note.start
+        );
+
+        gain.gain.setValueAtTime(
+          0.0001, now + note.start
+        );
+        gain.gain.exponentialRampToValueAtTime(
+          0.65, now + note.start + 0.01
+        );
+        gain.gain.setValueAtTime(
+          0.65, now + note.start + note.duration * 0.55
+        );
+        gain.gain.exponentialRampToValueAtTime(
+          0.0001, now + note.start + note.duration
+        );
+
+        osc.connect(gain);
+        gain.connect(master);
+
+        osc.start(now + note.start);
+        osc.stop(now + note.start + note.duration + 0.01);
+      });
+
+      setTimeout(() => audio.close(), 800);
+    }).catch(error => console.error("Audio error:", error));
+  } catch (error) {
+    console.error("Audio error:", error);
+  }
+}
+
+function showErrorPopup() {
+  errorModal.hidden = false;
+  playPopSound();
+  closeError.focus();
+}
+
+function showErrorPopup() {
+  errorModal.hidden = false;
+  playPopSound();
+  closeError.focus();
+}
+
+function hideErrorPopup() {
+  errorModal.hidden = true;
+  secretInput.focus();
+}
+
+closeError.addEventListener("click", hideErrorPopup);
+    let isRevealed = false;
+    let remainingSecrets = [];
+    let lastSecret = null;
+
+    function getNextSecret() {
+      if (remainingSecrets.length === 0) {
+        remainingSecrets = [...secrets];
+      }
+
+      const availableSecrets = remainingSecrets.filter((secret) => secret !== lastSecret);
+      const choices = availableSecrets.length > 0 ? availableSecrets : remainingSecrets;
+      const secret = choices[Math.floor(Math.random() * choices.length)];
+      remainingSecrets.splice(remainingSecrets.indexOf(secret), 1);
+      lastSecret = secret;
+      return secret;
+    }
+
+    function changePrompt(text) {
+      prompt.classList.add("changing");
+      window.setTimeout(() => {
+        prompt.textContent = text;
+        prompt.classList.remove("changing");
+      }, 180);
+    }
+
+    revealButton.addEventListener("click", () => {
+
+if (!isRevealed && !secretInput.value.trim()) {
+  showErrorPopup();
+  return;
+}
+        if (isRevealed) {
+        isRevealed = false;
+        secretInput.value = "";
+        secretInput.readOnly = false;
+        secretBox.classList.remove("revealed");
+        reaction.classList.remove("visible");
+        revealButton.textContent = "CLICK TO REVEAL";
+        revealButton.classList.remove("reenter-button");
+        changePrompt("Write a secret about yourself in invisible ink below...");
+        return;
+      }
+
+      isRevealed = true;
+      secretInput.value = getNextSecret();
+      secretInput.readOnly = true;
+      secretBox.classList.add("revealed");
+      reaction.classList.add("visible");
+      revealButton.textContent = "CLICK TO RE-ENTER";
+      revealButton.classList.add("reenter-button");
+      changePrompt("Your secret is…");
+    });
+  </script>
+</body>
+</html>
